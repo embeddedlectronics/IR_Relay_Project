@@ -19,66 +19,62 @@
 #include <avr/interrupt.h>
 
 #include "../Atmega_Libs/AtmegaPins.h"
-#include "_74HC164.h"
+#include "../Atmega_Libs/Serial_Atmel328p.h"
 
+// Define Signal Paramaters here 
+#define IR_Initial_Low_Pulse_Minimum	200
+#define IR_Initial_Low_Pulse_Maximum	3000   // Values are multiples of 0.0065ms 
+#define IR_Error_Tollerance_			20 // Not a percentage value but a value in 0.0065ms // its usually a good idea to have a value around 15-20
 
+// Define IR Input here
 #define IR_Input PORTD2 // input for ir
-#define IR_Output PORTD3 // input for ir
-
 #define IR_PIN_DDR DDRD   // data direction port for the pins
 #define IR_PORT PORTD
 #define IR_PIN_PORT PIND
 
 #define IRpin_PIN      PIND2
 #define IRpin          2
+//
 
 
-#define _Relay_1_Pin	PORTB0
-#define _Relay_2_Pin	PORTB1
-
-#define _Relay__PORT	PORTB
-#define _Relay__DDR	DDRB
 
 #define ANY_LOGIC_CHANGE 	EICRA |= (1 << ISC00) & ~(1 << ISC01);    // set INT0 to trigger on ANY logic change
-
-volatile _Delay_1_Trigger;
-volatile _Delay_2_Trigger;
-volatile _Clock_Pulse_Trigger;
-
-volatile char _IR_Read_State;
-volatile char _Delay_3_Trigger;
-volatile char _counter_;
-volatile char _binary_counter_;
-volatile char _binary_array_counter_;
-volatile char _count_delay;
-volatile char _counter_ON ;
-volatile char _counter_OFF;
-volatile char _clear ;
-
-
-volatile char _IR_Clock_Pulses;
-volatile char _IR_Get_Pules;
-
-uint16_t _Delay_Time;
-uint16_t _half_time ;
-
-int delay ;
-
-// when i hit the button slow it counts as two unputs
-
-int Pulse_Time[5];
-
-uint16_t _Store_Input_Signal[32];
-uint16_t _Store_ON_Pulse[80];
+#define HIGH_LOW_LOGIC_CHANGE 	EICRA |= (1 << ISC01) & ~(1 << ISC00);    // set INT0 to trigger on ANY logic change
+#define LOW_HIGH_LOGIC_CHANGE	EICRA |= (1 << ISC01) | (1 << ISC00); // LOW -> high transistion trigger
 
 
 
-int _IR_Remote_Buttons[4][9]; 
 
+struct _IR_Signal{
+	volatile char _IR_Status_Trigger;
+	volatile char _IR_Get_Pulses; 
+	volatile char _IR_Read_State;
+
+	 
+	uint16_t _Delay_Time;
+	uint16_t _Delay_Variable;
+
+	char _IR_Clock_Pulses; 
+	char _IR_Counter_Variable; // used to count clock pulses 
+	char _IR_Array_Counter;  // used to count current location in Input signal array
+	char _IR_Array_Binary_Counter_; // used to count from 0-16 
+	char _IR_Count_Delay; //
+	char _IR_Vers_Variable; // var used for various applications
+		
+	uint16_t _IR_Pulse_Time[5]; // stores all 5 portions of the start pulse 
+	uint16_t _IR_Half_Pulse;  // stores the previous pulse  
+	uint16_t _IR_Store_Input_Signal[16]; // stores signals 256 pulses length // anything beyond that is insane. 
+	
+}Properties;
+
+
+
+int _IR_Remote_Buttons[4][9];
 
 char IR_Compare(int *_IR_Input, int * _Existing_Code); 
 void IR_Initalize(void);
-void IR_Analyze(void);
-void IR_Determine_Signal_Length(void);
+
+
+
 
 #endif /* IR_SENSOR_H_ */
